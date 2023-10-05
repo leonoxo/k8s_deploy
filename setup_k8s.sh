@@ -1,26 +1,39 @@
 #!/bin/bash
 
+# 檢測當前的網卡名稱
+NETCARD=$(ls /sys/class/net | grep -v lo | head -n 1)
+
 # 獲取當前的主機名稱
 CURRENT_HOSTNAME=$(hostname)
-
-# 使用者輸入的變數
-# 並提供當前主機名稱作為預設值
 read -p "請輸入主機名稱 (當前值: $CURRENT_HOSTNAME): " HOSTNAME
-read -p "請輸入IP地址: " IP
-read -p "請輸入子網掩碼 (CIDR格式, 例如 24): " SUBNETMASK_CIDR
-read -p "請輸入預設閘道: " GATEWAY
-read -p "請輸入nameserver: " NAMESERVER
-
-# 如果使用者未輸入新值，則使用當前的主機名稱
 HOSTNAME=${HOSTNAME:-$CURRENT_HOSTNAME}
+hostnamectl set-hostname $HOSTNAME
 
 # 更新 /etc/hosts 以便節點可以互相解析
 echo "$IP $HOSTNAME" >> /etc/hosts
 
-# 自動檢測第一張可用網卡
-NETCARD=$(ls /sys/class/net | grep -v lo | head -n 1)
+# 獲取當前的IP地址
+CURRENT_IP=$(ip addr show $NETCARD | grep "inet\b" | awk '{print $2}' | cut -d/ -f1)
+# 獲取當前的子網掩碼
+CURRENT_SUBNETMASK_CIDR=$(ip -o -f inet addr show $NETCARD | awk '{split($4,a,"/"); print a[2]}')
+# 獲取當前的閘道
+CURRENT_GATEWAY=$(ip route | grep default | awk '{print $3}')
+# 獲取當前的nameserver
+CURRENT_NAMESERVER=$(awk '/nameserver/ {print $2}' /etc/resolv.conf | head -n 1)
 
-# 使用檢測到的網卡生成 netplan 配置
+# 使用者輸入，並提供當前值作為預設值
+read -p "請輸入IP地址 (當前值: $CURRENT_IP): " IP
+read -p "請輸入子網掩碼 (CIDR格式, 例如 24) (當前值: $CURRENT_SUBNETMASK_CIDR): " SUBNETMASK_CIDR
+read -p "請輸入預設閘道 (當前值: $CURRENT_GATEWAY): " GATEWAY
+read -p "請輸入nameserver (當前值: $CURRENT_NAMESERVER): " NAMESERVER
+
+# 如果使用者未輸入新值，則使用當前值
+IP=${IP:-$CURRENT_IP}
+SUBNETMASK_CIDR=${SUBNETMASK_CIDR:-$CURRENT_SUBNETMASK_CIDR}
+GATEWAY=${GATEWAY:-$CURRENT_GATEWAY}
+NAMESERVER=${NAMESERVER:-$CURRENT_NAMESERVER}
+
+# 使用選擇的網卡在 netplan 設定中
 cat > /etc/netplan/99-netcfg.yaml <<EOF
 network:
   version: 2
@@ -45,9 +58,6 @@ sudo tee /etc/modules-load.d/containerd.conf <<EOF
 overlay
 br_netfilter
 EOF
-
-sudo modprobe overlay
-sudo modprobe br_netfilter
 
 sudo tee /etc/sysctl.d/kubernetes.conf <<EOF
 net.bridge.bridge-nf-call-ip6tables = 1
