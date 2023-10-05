@@ -51,7 +51,6 @@ echo "$IP $HOSTNAME" >> /etc/hosts
 
 # 禁用 swap
 sudo swapoff -a
-sudo rm /swap.img
 sudo sed -i '/ swap / s/^(.*)$/#1/g' /etc/fstab
 
 # 修改內核參數
