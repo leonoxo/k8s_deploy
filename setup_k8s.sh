@@ -13,13 +13,16 @@ hostnamectl set-hostname $HOSTNAME
 # 更新 /etc/hosts 以便節點可以互相解析
 echo "$IP $HOSTNAME" >> /etc/hosts
 
-# 使用netplan設定網路
+# 自動選擇網卡
+NETCARD=$(ip -o link show | awk -F': ' '{print $2}' | head -n1)
+
+# 使用選擇的網卡在 netplan 設定中
 cat > /etc/netplan/01-netcfg.yaml <<EOF
 network:
   version: 2
   renderer: networkd
   ethernets:
-    ens33:
+    $NETCARD:
       dhcp4: no
       addresses: [$IP/$SUBNETMASK_CIDR]
       gateway4: $GATEWAY
@@ -44,6 +47,7 @@ net.bridge.bridge-nf-call-ip6tables = 1
 net.bridge.bridge-nf-call-iptables = 1
 net.ipv4.ip_forward = 1
 EOF
+
 sudo sysctl --system
 
 # 安装dependencies
