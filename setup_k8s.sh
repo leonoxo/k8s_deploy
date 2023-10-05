@@ -1,5 +1,8 @@
 #!/bin/bash
 
+# 檢測當前使用的netplan設定檔名稱
+NETPLAN_FILE=$(ls /etc/netplan/ | head -n 1)
+
 # 獲取當前的主機名稱
 CURRENT_HOSTNAME=$(hostname)
 # 獲取當前的IP地址
@@ -26,13 +29,13 @@ SUBNETMASK_CIDR=${SUBNETMASK_CIDR:-$CURRENT_SUBNETMASK_CIDR}
 GATEWAY=${GATEWAY:-$CURRENT_GATEWAY}
 NAMESERVER=${NAMESERVER:-$CURRENT_NAMESERVER}
 
-# 使用選擇的網卡在 netplan 設定中
-cat > /etc/netplan/99-netcfg.yaml <<EOF
+# 使用檢測到的設定檔名稱進行更新
+cat > /etc/netplan/$NETPLAN_FILE <<EOF
 network:
   version: 2
   renderer: networkd
   ethernets:
-    $NETCARD:
+    ens33:
       dhcp4: no
       addresses: [$IP/$SUBNETMASK_CIDR]
       gateway4: $GATEWAY
@@ -47,6 +50,7 @@ echo "$IP $HOSTNAME" >> /etc/hosts
 
 # 禁用 swap
 sudo swapoff -a
+sudo rm /swap.img
 sudo sed -i '/ swap / s/^(.*)$/#1/g' /etc/fstab
 
 # 修改內核參數
