@@ -70,14 +70,14 @@ EOF
 sudo sysctl --system
 
 # 安装dependencies
-sudo apt update && sudo apt install -y curl gnupg2 software-properties-common apt-transport-https ca-certificates
+sudo apt update -y && sudo apt install -y curl gnupg2 software-properties-common apt-transport-https ca-certificates
 
 # 添加docker repo
 sudo curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo gpg --dearmour -o /etc/apt/trusted.gpg.d/docker.gpg
 sudo add-apt-repository "deb [arch=amd64] https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable"
 
 # 安装containerd
-sudo apt update && sudo apt install -y containerd.io
+sudo apt update -y && sudo apt install -y containerd.io
 
 # 配置containerd使用systemd作为cgroup
 containerd config default | sudo tee /etc/containerd/config.toml >/dev/null 2>&1
@@ -90,7 +90,7 @@ curl -s https://packages.cloud.google.com/apt/doc/apt-key.gpg | sudo apt-key add
 sudo apt-add-repository "deb http://apt.kubernetes.io/ kubernetes-xenial main"
 
 # 安装Kubectl, kubeadm & kubelet
-sudo apt update && sudo apt install -y kubelet kubeadm kubectl
+sudo apt update -y && sudo apt install -y kubelet kubeadm kubectl
 sudo apt-mark hold kubelet kubeadm kubectl
 
 # 初始化Master节点
