@@ -1,14 +1,18 @@
 #!/bin/bash
 
+# 獲取當前的主機名稱
+CURRENT_HOSTNAME=$(hostname)
+
 # 使用者輸入的變數
-read -p "請輸入主機名稱: " HOSTNAME
+# 並提供當前主機名稱作為預設值
+read -p "請輸入主機名稱 (當前值: $CURRENT_HOSTNAME): " HOSTNAME
 read -p "請輸入IP地址: " IP
 read -p "請輸入子網掩碼 (CIDR格式, 例如 24): " SUBNETMASK_CIDR
 read -p "請輸入預設閘道: " GATEWAY
 read -p "請輸入nameserver: " NAMESERVER
 
-# 設定主機名稱
-hostnamectl set-hostname $HOSTNAME
+# 如果使用者未輸入新值，則使用當前的主機名稱
+HOSTNAME=${HOSTNAME:-$CURRENT_HOSTNAME}
 
 # 更新 /etc/hosts 以便節點可以互相解析
 echo "$IP $HOSTNAME" >> /etc/hosts
