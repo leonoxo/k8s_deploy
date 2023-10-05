@@ -13,11 +13,11 @@ hostnamectl set-hostname $HOSTNAME
 # 更新 /etc/hosts 以便節點可以互相解析
 echo "$IP $HOSTNAME" >> /etc/hosts
 
-# 自動選擇網卡
-NETCARD=$(ip -o link show | awk -F': ' '{print $2}' | head -n1)
+# 自動檢測第一張可用網卡
+NETCARD=$(ls /sys/class/net | grep -v lo | head -n 1)
 
-# 使用選擇的網卡在 netplan 設定中
-cat > /etc/netplan/01-netcfg.yaml <<EOF
+# 使用檢測到的網卡生成 netplan 配置
+cat > /etc/netplan/99-netcfg.yaml <<EOF
 network:
   version: 2
   renderer: networkd
@@ -41,6 +41,9 @@ sudo tee /etc/modules-load.d/containerd.conf <<EOF
 overlay
 br_netfilter
 EOF
+
+sudo modprobe overlay
+sudo modprobe br_netfilter
 
 sudo tee /etc/sysctl.d/kubernetes.conf <<EOF
 net.bridge.bridge-nf-call-ip6tables = 1
