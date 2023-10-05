@@ -1,5 +1,8 @@
 #!/bin/bash
 
+# 檢測用於默認路由的界面名稱
+INTERFACE=$(ip -o -4 route show to default | awk '{print $5}')
+
 # 檢測當前使用的netplan設定檔名稱
 NETPLAN_FILE=$(ls /etc/netplan/ | head -n 1)
 
