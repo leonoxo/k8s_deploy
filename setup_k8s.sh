@@ -3,15 +3,11 @@
 # 檢測當前使用的netplan設定檔名稱
 NETPLAN_FILE=$(ls /etc/netplan/ | head -n 1)
 
-# 獲取當前的主機名稱
+# 獲取當前主機名稱、IP地址、子網掩碼、閘道和nameserver
 CURRENT_HOSTNAME=$(hostname)
-# 獲取當前的IP地址
-CURRENT_IP=$(ip addr show $NETCARD | grep "inet\b" | awk '{print $2}' | cut -d/ -f1)
-# 獲取當前的子網掩碼
-CURRENT_SUBNETMASK_CIDR=$(ip -o -f inet addr show $NETCARD | awk '{split($4,a,"/"); print a[2]}')
-# 獲取當前的閘道
+CURRENT_IP=$(hostname -I | awk '{print $1}')
+CURRENT_SUBNETMASK_CIDR=$(ip -o -f inet addr show | grep $CURRENT_IP | awk '{split($4,a,"/"); print a[2]}')
 CURRENT_GATEWAY=$(ip route | grep default | awk '{print $3}')
-# 獲取當前的nameserver
 CURRENT_NAMESERVER=$(awk '/nameserver/ {print $2}' /etc/resolv.conf | head -n 1)
 
 # 使用者輸入，並提供當前值作為預設值
