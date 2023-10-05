@@ -37,7 +37,9 @@ network:
     $INTERFACE:
       dhcp4: no
       addresses: [$IP/$SUBNETMASK_CIDR]
-      gateway4: $GATEWAY
+      routes:
+      - to: 0.0.0.0/0
+        via: $GATEWAY
       nameservers:
         addresses: [$NAMESERVER]
 EOF
