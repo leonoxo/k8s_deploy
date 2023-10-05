@@ -34,7 +34,7 @@ network:
   version: 2
   renderer: networkd
   ethernets:
-    ens33:
+    $INTERFACE:
       dhcp4: no
       addresses: [$IP/$SUBNETMASK_CIDR]
       gateway4: $GATEWAY
